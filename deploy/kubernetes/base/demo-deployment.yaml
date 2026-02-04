@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leaky-app
+  namespace: healx
+  labels:
+    app: leaky-app
+    healx.io/monitor: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: leaky-app
+  template:
+    metadata:
+      labels:
+        app: leaky-app
+        healx.io/monitor: "true"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: leaky-app
+        image: leaky-app:v1
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"  # Intentionally low to trigger OOM
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
