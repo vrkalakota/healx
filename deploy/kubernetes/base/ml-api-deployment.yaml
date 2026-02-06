@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-api-config
+  namespace: healx
+data:
+  DB_HOST: "postgres.healx.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "healx"
+  DB_USER: "healx_user"
+  MODEL_PATH: "/models/lstm_predictor.h5"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ml-api-secret
+  namespace: healx
+type: Opaque
+stringData:
+  DB_PASSWORD: "healx_pass_dev_only"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-api
+  namespace: healx
+  labels:
+    app: ml-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-api
+  template:
+    metadata:
+      labels:
+        app: ml-api
+    spec:
+      containers:
+      - name: ml-api
+        image: healx-ml-api:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: ml-api-config
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ml-api-secret
+              key: DB_PASSWORD
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      initContainers:
+      - name: model-loader
+        image: busybox
+        command: ['sh', '-c', 'echo "Model will be loaded by application"']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-api
+  namespace: healx
+  labels:
+    app: ml-api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: ml-api

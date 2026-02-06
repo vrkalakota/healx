@@ -1,4 +1,4 @@
--- Create tables for HealX
+-- Create tables for HealX (PostgreSQL)
 
 -- Metrics table
 CREATE TABLE IF NOT EXISTS metrics (
@@ -7,12 +7,13 @@ CREATE TABLE IF NOT EXISTS metrics (
     namespace VARCHAR(255) NOT NULL,
     metric_name VARCHAR(255) NOT NULL,
     metric_value DOUBLE PRECISION NOT NULL,
-    timestamp TIMESTAMP NOT NULL,
+    "timestamp" TIMESTAMP NOT NULL,
     labels JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_pod_time (pod_name, timestamp),
-    INDEX idx_metric_time (metric_name, timestamp)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_pod_time ON metrics (pod_name, "timestamp");
+CREATE INDEX IF NOT EXISTS idx_metric_time ON metrics (metric_name, "timestamp");
 
 -- Anomalies table
 CREATE TABLE IF NOT EXISTS anomalies (
@@ -26,10 +27,11 @@ CREATE TABLE IF NOT EXISTS anomalies (
     detected_at TIMESTAMP NOT NULL,
     resolved_at TIMESTAMP,
     status VARCHAR(50) DEFAULT 'detected',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_pod_status (pod_name, status),
-    INDEX idx_detected_time (detected_at)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_pod_status ON anomalies (pod_name, status);
+CREATE INDEX IF NOT EXISTS idx_detected_time ON anomalies (detected_at);
 
 -- Healing actions table
 CREATE TABLE IF NOT EXISTS healing_actions (
@@ -43,10 +45,11 @@ CREATE TABLE IF NOT EXISTS healing_actions (
     started_at TIMESTAMP NOT NULL,
     completed_at TIMESTAMP,
     result JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_anomaly (anomaly_id),
-    INDEX idx_pod_action (pod_name, action_type)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_anomaly ON healing_actions (anomaly_id);
+CREATE INDEX IF NOT EXISTS idx_pod_action ON healing_actions (pod_name, action_type);
 
 -- Model predictions table
 CREATE TABLE IF NOT EXISTS predictions (
@@ -59,6 +62,7 @@ CREATE TABLE IF NOT EXISTS predictions (
     prediction_window INTEGER, -- minutes ahead
     features JSONB,
     predicted_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_pod_prediction_time (pod_name, predicted_at)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_pod_prediction_time ON predictions (pod_name, predicted_at);

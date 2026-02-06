@@ -1,0 +1,17 @@
+collector:
+  interval: 30s
+  batch_size: 100
+   
+prometheus:
+  url: http://prometheus-server.healx.svc.cluster.local
+
+database:
+  host: postgres.healx.svc.cluster.local
+  port: 5432
+  user: healx_user
+  password: healx_pass_dev_only
+  dbname: healx
+
+kubernetes:
+  namespace: healx
+  label_selector: "healx.io/monitor=true"

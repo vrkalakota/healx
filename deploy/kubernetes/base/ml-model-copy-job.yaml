@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: copy-ml-model
+  namespace: healx
+spec:
+  template:
+    spec:
+      containers:
+      - name: copy-model
+        image: busybox
+        command: ['sh', '-c', 'echo "Model placeholder - will be replaced with actual copy"']
+      restartPolicy: Never
+  backoffLimit: 3

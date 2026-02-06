@@ -36,9 +36,9 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	fmt.Fprintf(w, "# HELP memory_usage_bytes Current memory usage\n")
-	fmt.Fprintf(w, "# TYPE memory_usage_bytes gauge\n")
-	fmt.Fprintf(w, "memory_usage_bytes %d\n", m.Alloc)
+	fmt.Fprintf(w, "# HELP memory_usage_mb_bytes Current memory usage\n")
+	fmt.Fprintf(w, "# TYPE memory_usage_mb_bytes gauge\n")
+	fmt.Fprintf(w, "memory_usage_mb_bytes %d\n", m.Alloc)
 
 	fmt.Fprintf(w, "# HELP goroutines_count Number of goroutines\n")
 	fmt.Fprintf(w, "# TYPE goroutines_count gauge\n")
